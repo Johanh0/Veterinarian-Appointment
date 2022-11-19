@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import Err from "./Err";
 
-const Form = () => {
+const Form = ({ patients, setPatients, patient, setPatient }) => { 
   const [petName, setPetName] = useState(``);
   const [ownerName, setOwnerName] = useState(``);
   const [email, setEmail] = useState(``);
@@ -8,6 +9,24 @@ const Form = () => {
   const [symptoms, setSymptoms] = useState(``);
 
   const [err, setErr] = useState(false);
+
+  useEffect(() => {
+    if(Object.keys(patient).length > 0) {
+      setPetName(patient.petName)
+      setOwnerName(patient.ownerName)
+      setEmail(patient.email)
+      setDate(patient.date)
+      setSymptoms(patient.symptoms)
+    }
+
+  }, [patient])
+
+  const createId = () => {
+    const random = Math.random().toString(36).substr(2);
+    const date = Date.now().toString(36);
+
+    return random + date;
+  }
 
 
   const handleSubmit = (e) => {
@@ -17,6 +36,36 @@ const Form = () => {
       setErr(true);
     } else {
       setErr(false)
+
+      // Patient Obj
+      const patientsObj = {
+        petName, 
+        ownerName, 
+        email, 
+        date, 
+        symptoms
+      }
+
+      if(patient.id) {
+        // Editing the register
+        patientsObj.id = patient.id
+
+        const patientsUpdate = patients.map(patientState => patientState.id === patient.id ? patientsObj : patientState);
+
+        setPatients(patientsUpdate);
+        setPatient({});
+      } else {
+        // New register
+        patientsObj.id = createId();
+        setPatients([...patients, patientsObj]);
+      }
+
+      // Restart the form
+      setPetName(``)
+      setOwnerName(``)
+      setEmail(``)
+      setDate(``)
+      setSymptoms(``)
     }
   };
 
@@ -93,9 +142,9 @@ const Form = () => {
             ></textarea>
           </div>
 
-          <input type="submit" className="bg-indigo-600 w-full p-3 text-white uppercase font-bold hover:bg-indigo-700 cursor-pointer rounded-md transition-all" value="Add Patient"/>
+          <input type="submit" className="bg-indigo-600 w-full p-3 text-white uppercase font-bold hover:bg-indigo-700 cursor-pointer rounded-md transition-all" value={ patient.id ? `Edit Patient` : `Add Patient` }/>
 
-          {err && (<div className="bg-red-600 text-white text-center p-3 uppercase font-bold mt-3 rounded-md"><p>All fields are required</p></div>)}
+          {err && <Err><p>All fields are required</p></Err>}
         </form>
     </div>
   )
